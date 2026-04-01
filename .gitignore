@@ -1,0 +1,24 @@
+# Build artifacts
+build/
+*.so
+*.a
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+*.cmake !CMakeLists.txt
+
+# Editor/IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# AUR package artifacts
+*.pkg.tar.zst
+*.pkg.tar.xz
+src/
+pkg/

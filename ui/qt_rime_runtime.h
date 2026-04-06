@@ -23,10 +23,17 @@ public:
             traits.app_name = "rime.rime-webdav";
             traits.shared_data_dir = "/usr/share/rime";
             const char* home = std::getenv("HOME");
-            std::string userDir = home ? std::string(home) + "/.config/fcitx-rime" : "/home/faywong/.config/fcitx-rime";
+            std::string userDir = home ? std::string(home) + "/.config/fcitx-rime" : std::string();
             traits.user_data_dir = userDir.c_str();
             if (api_->initialize) {
                 api_->initialize(&traits);
+            }
+            // deployer_initialize() registers deployment tasks
+            // (installation_update, user_dict_sync, etc.) required by
+            // sync_user_data() and run_task().  Without this, all
+            // deployment tasks are "unknown" and sync_user_data() fails.
+            if (api_->deployer_initialize) {
+                api_->deployer_initialize(&traits);
             }
             fprintf(stderr, "DEBUG: Rime initialized, user_data_dir=%s\n", userDir.c_str());
         }
@@ -48,9 +55,12 @@ public:
 
     std::string getUserDataDirString() const {
         auto p = getUserDataDir();
+        // Must use p.string().empty() — path's operator bool is always true
+        // for a path object regardless of emptiness, so || shortcut never reaches
+        // the fallback.
         if (p.string().empty() || p.string() == ".") {
             const char* home = std::getenv("HOME");
-            return home ? std::string(home) + "/.config/fcitx-rime" : "/home/faywong/.config/fcitx-rime";
+            return home ? std::string(home) + "/.config/fcitx-rime" : std::string();
         }
         return p.string();
     }
@@ -103,6 +113,9 @@ public:
         }
         std::string installFile = userDirStr + "/installation.ini";
 
+        // Ensure directory exists before writing
+        std::filesystem::create_directories(std::filesystem::path(userDirStr));
+
         std::string newId;
         {
             char hostname[256] = {0};
@@ -113,6 +126,7 @@ public:
 
         std::ofstream fout(installFile);
         if (!fout) {
+            fprintf(stderr, "ERROR: runInstallationUpdate: cannot write %s\n", installFile.c_str());
             return false;
         }
         fout << "[info]\n"

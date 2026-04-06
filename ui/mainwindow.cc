@@ -271,7 +271,7 @@ void MainWindow::onSyncFinished(const QString &message) {
     syncNowButton_->setEnabled(true);
     saveButton_->setEnabled(true);
     
-    if (message.startsWith("成功")) {
+    if (message.startsWith("同步成功")) {
         std::string ts = formatCurrentTime();
         config_.lastSyncTime = ts;
         lastSyncValueLabel_->setText(ts.c_str());

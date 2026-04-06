@@ -13,6 +13,34 @@
 
 namespace rime_sync {
 
+// Resolve the active Rime user data directory by probing known locations
+// in priority order.  Fcitx5-rime stores its data under
+// $XDG_DATA_HOME/fcitx5/rime, while legacy fcitx4 used
+// ~/.config/fcitx-rime.
+static std::string detect_rime_user_data_dir() {
+    namespace fs = std::filesystem;
+
+    // 1. XDG_DATA_HOME/fcitx5/rime  (Fcitx5 standard)
+    const char* xdg = std::getenv("XDG_DATA_HOME");
+    std::string xdg_data = xdg ? std::string(xdg) : std::string(std::getenv("HOME")) + "/.local/share";
+    std::string fcitx5_dir = xdg_data + "/fcitx5/rime";
+    if (fs::exists(fs::path(fcitx5_dir) / "installation.yaml")) {
+        return fcitx5_dir;
+    }
+
+    // 2. ~/.config/fcitx-rime  (legacy fcitx4)
+    const char* home = std::getenv("HOME");
+    std::string fcitx4_dir = home ? std::string(home) + "/.config/fcitx-rime" : std::string();
+    if (!fcitx4_dir.empty() && fs::exists(fs::path(fcitx4_dir) / "installation.yaml")) {
+        return fcitx4_dir;
+    }
+
+    // 3. Fallback: prefer Fcitx5 path if the directory exists at all,
+    //    otherwise legacy path.
+    if (fs::exists(fcitx5_dir)) return fcitx5_dir;
+    return fcitx4_dir;
+}
+
 class QtRimeRuntime : public RimeRuntime {
 public:
     QtRimeRuntime() {
@@ -22,8 +50,7 @@ public:
             traits.data_size = sizeof(traits);
             traits.app_name = "rime.rime-webdav";
             traits.shared_data_dir = "/usr/share/rime";
-            const char* home = std::getenv("HOME");
-            std::string userDir = home ? std::string(home) + "/.config/fcitx-rime" : std::string();
+            std::string userDir = detect_rime_user_data_dir();
             traits.user_data_dir = userDir.c_str();
             if (api_->initialize) {
                 api_->initialize(&traits);
@@ -55,33 +82,58 @@ public:
 
     std::string getUserDataDirString() const {
         auto p = getUserDataDir();
-        // Must use p.string().empty() — path's operator bool is always true
-        // for a path object regardless of emptiness, so || shortcut never reaches
-        // the fallback.
-        if (p.string().empty() || p.string() == ".") {
-            const char* home = std::getenv("HOME");
-            return home ? std::string(home) + "/.config/fcitx-rime" : std::string();
+        if (!p.string().empty() && p.string() != ".") {
+            return p.string();
         }
-        return p.string();
+        // Fallback: re-detect using the same logic as initialization
+        return detect_rime_user_data_dir();
     }
 
     std::string getInstallationId() const override {
         auto userDir = getUserDataDir();
-        std::string installFile = userDir.string() + "/installation.ini";
-        std::ifstream fin(installFile);
-        if (!fin) {
-            return "unknown";
+
+        // Try installation.yaml first (Fcitx5-rime format):
+        //   installation_id: "abe792d8-8b5f-4b68-9909-3772ff9a92a3"
+        std::string yamlFile = userDir.string() + "/installation.yaml";
+        {
+            std::ifstream fin(yamlFile);
+            std::string line;
+            while (std::getline(fin, line)) {
+                if (line.rfind("installation_id", 0) == 0) {
+                    size_t colon = line.find(':');
+                    if (colon != std::string::npos) {
+                        std::string val = line.substr(colon + 1);
+                        size_t start = val.find_first_not_of(" \t\r\n");
+                        size_t end = val.find_last_not_of(" \t\r\n");
+                        if (start != std::string::npos && end != std::string::npos && end >= start) {
+                            std::string id = val.substr(start, end - start + 1);
+                            // installation_id may be quoted: "uuid"
+                            if (id.front() == '"' && id.back() == '"' && id.size() >= 2) {
+                                id = id.substr(1, id.size() - 2);
+                            }
+                            return id;
+                        }
+                    }
+                }
+            }
         }
-        std::string line;
-        while (std::getline(fin, line)) {
-            if (line.rfind("installation_id", 0) == 0) {
-                size_t eq = line.find('=');
-                if (eq != std::string::npos) {
-                    std::string id = line.substr(eq + 1);
-                    size_t start = id.find_first_not_of(" \t\r\n");
-                    size_t end = id.find_last_not_of(" \t\r\n");
-                    if (start != std::string::npos) {
-                        return id.substr(start, end - start + 1);
+
+        // Fallback: installation.ini (legacy format):
+        //   installation_id=cachyos-1775483636
+        std::string iniFile = userDir.string() + "/installation.ini";
+        {
+            std::ifstream fin(iniFile);
+            std::string line;
+            while (std::getline(fin, line)) {
+                if (line.rfind("installation_id", 0) == 0) {
+                    size_t eq = line.find('=');
+                    if (eq != std::string::npos) {
+                        std::string id = line.substr(eq + 1);
+                        size_t start = id.find_first_not_of(" \t\r\n");
+                        size_t end = id.find_last_not_of(" \t\r\n");
+                        if (start != std::string::npos) {
+                            return id.substr(start, end - start + 1);
+                        }
                     }
                 }
             }

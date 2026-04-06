@@ -11,6 +11,9 @@ void QtLogger::log(LogLevel level, const char *fmt, va_list ap) {
     char buffer[1024];
     vsnprintf(buffer, sizeof(buffer), fmt, ap);
     QString line = QString::fromUtf8(buffer);
+    // Also emit to stderr for CLI capture (e.g. nohup runs)
+    fprintf(stderr, "%s\n", buffer);
+    fflush(stderr);
     emit logReady(line);
 }
 

@@ -5,7 +5,7 @@
 #ifndef RIME_WEBDAV_LINUX_RUNTIME_H_
 #define RIME_WEBDAV_LINUX_RUNTIME_H_
 
-#include "../shared/rime_webdav_sync.h"
+#include "../common/rime_webdav_sync.h"
 
 #include <fcitx-utils/log.h>
 

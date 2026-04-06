@@ -29,7 +29,7 @@ sha256sums=('SKIP')
 
 pkgver() {
   cd "$srcdir/$pkgname"
-  _ver=$(sed -n 's/^Version=//p' rime-webdav/rime-webdav.conf)
+  _ver=$(sed -n 's/^Version=//p' ui/rime-webdav.conf)
   printf "%s" "${_ver:-5.1.19}"
 }
 
@@ -45,9 +45,9 @@ build() {
 
 package() {
   cd "$srcdir/$pkgname"
-  install -Dm755 "build/rime-webdav/libfcitx-rime-webdav.so" \
+  install -Dm755 "build/ui/libfcitx-rime-webdav.so" \
     "${pkgdir}/usr/lib/fcitx5/libfcitx-rime-webdav.so"
 
-  install -Dm644 "rime-webdav/rime-webdav.conf" \
+  install -Dm644 "ui/rime-webdav.conf" \
     "${pkgdir}/usr/share/fcitx5/addon/rime-webdav.conf"
 }

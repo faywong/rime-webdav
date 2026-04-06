@@ -28,7 +28,6 @@ add_library(rime_webdav_sync STATIC
 
 target_include_directories(rime_webdav_sync PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/../third_party/webdav-client-cpp/include
 )
 
 # C++20 required (Fcitx5 headers need C++20)

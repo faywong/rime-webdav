@@ -41,7 +41,7 @@ add_library(fcitx-rime-webdav SHARED ${WEBDAV_ADDON_SOURCES})
 # Shared abstraction layer and librime headers
 target_include_directories(fcitx-rime-webdav PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/../shared/
+    ${CMAKE_CURRENT_SOURCE_DIR}/../common/
     /usr/include
     /usr/include/Fcitx5/Core
     /usr/include/Fcitx5/Utils

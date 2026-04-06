@@ -81,9 +81,9 @@ target_link_libraries(wdc PUBLIC
 # Shared abstraction sync layer
 # =============================================================================
 set(PUGIXML_PC ON)
-add_subdirectory(shared "${CMAKE_BINARY_DIR}/shared")
+add_subdirectory(common "${CMAKE_BINARY_DIR}/shared")
 
 # =============================================================================
-# Build rime-webdav plugin
+# Build rime-webdav UI plugin
 # =============================================================================
-add_subdirectory(rime-webdav)
+add_subdirectory(ui)

@@ -5,7 +5,7 @@
 #ifndef RIME_WEBDAV_FCITX_LOGGER_H_
 #define RIME_WEBDAV_FCITX_LOGGER_H_
 
-#include "../shared/rime_webdav_sync.h"
+#include "../common/rime_webdav_sync.h"
 
 #include <cstdio>
 #include <cstdarg>

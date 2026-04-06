@@ -16,7 +16,7 @@
 #include <filesystem>
 #include <thread>
 
-#include "../shared/rime_webdav_sync.h"
+#include "../common/rime_webdav_sync.h"
 #include "linux_rime_runtime.h"
 #include "linux_logger.h"
 

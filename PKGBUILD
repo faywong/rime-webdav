@@ -1,7 +1,7 @@
 # Maintainer: Fay Wong <i@faywong.cc>
 
 pkgname=rime-webdav-git
-pkgver=0.r6.gc93c693
+pkgver=0.r7.gf64038c
 pkgrel=1
 pkgdesc="Qt GUI for syncing Rime user data over WebDAV"
 arch=('x86_64')

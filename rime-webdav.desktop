@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Rime WebDAV Sync
+Name[zh_CN]=Rime WebDAV 同步
+Comment=Sync Rime user data over WebDAV
+Comment[zh_CN]=通过 WebDAV 同步 Rime 用户数据
+Exec=rime-webdav
+Terminal=false
+Categories=Utility;Settings;
+Keywords=Rime;WebDAV;Sync;Input Method;

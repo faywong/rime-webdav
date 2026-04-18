@@ -1,53 +1,48 @@
 # Maintainer: Fay Wong <i@faywong.cc>
-pkgname=fcitx5-rime-webdav
-pkgver=5.1.19
+
+pkgname=rime-webdav-git
+pkgver=0.r6.gc93c693
 pkgrel=1
-pkgdesc="Fcitx5 plugin for Rime user dictionary WebDAV multi-device sync"
+pkgdesc="Qt GUI for syncing Rime user data over WebDAV"
 arch=('x86_64')
-url="https://github.com/faywong/fcitx5-rime-webdav"
-license=('GPL3')
-groups=('fcitx5-im')
+url="https://github.com/faywong/rime-webdav"
+license=('GPL-3.0-or-later')
+provides=('rime-webdav')
+conflicts=('rime-webdav')
 depends=(
-  'fcitx5'
+  'curl'
   'librime'
-  'libcurl.so'
+  'openssl'
   'pugixml'
+  'qt6-base'
 )
 makedepends=(
   'cmake'
-  'extra-cmake-modules'
   'gcc'
-  'git'
   'pkgconf'
 )
-optdepends=(
-  'fcitx5-rime: Rime input method engine for fcitx5'
-  'fcitx5-configtool: GUI configuration tool'
-)
-source=("$pkgname::git+https://github.com/faywong/$pkgname.git")
+source=('git+https://github.com/faywong/rime-webdav.git')
 sha256sums=('SKIP')
 
 pkgver() {
-  cd "$srcdir/$pkgname"
-  _ver=$(sed -n 's/^Version=//p' ui/rime-webdav.conf)
-  printf "%s" "${_ver:-5.1.19}"
+  cd "${srcdir}/rime-webdav"
+  printf "0.r%s.g%s" \
+    "$(git rev-list --count HEAD)" \
+    "$(git rev-parse --short=7 HEAD)"
 }
 
 build() {
-  cd "$srcdir/$pkgname"
-  cmake -B build \
+  local src="${srcdir}/rime-webdav"
+  cmake -S "${src}" -B "${src}/build" \
     -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_INSTALL_PREFIX=/usr \
-    -DCMAKE_INSTALL_LIBDIR=/usr/lib \
-    -DCMAKE_INSTALL_SYSCONFDIR=/etc
-  cmake --build build -j"$(nproc)"
+    -DCMAKE_INSTALL_PREFIX=/usr
+  cmake --build "${src}/build" --parallel
 }
 
 package() {
-  cd "$srcdir/$pkgname"
-  install -Dm755 "build/ui/libfcitx-rime-webdav.so" \
-    "${pkgdir}/usr/lib/fcitx5/libfcitx-rime-webdav.so"
+  local src="${srcdir}/rime-webdav"
+  DESTDIR="${pkgdir}" cmake --install "${src}/build"
 
-  install -Dm644 "ui/rime-webdav.conf" \
-    "${pkgdir}/usr/share/fcitx5/addon/rime-webdav.conf"
+  install -Dm644 "${src}/LICENSE" \
+    "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
 }
